@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Income and Expense Tracker - Dashboard</title>
+    <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore.js"></script>
+    <style>
+        /* Add your existing styles here */
+    </style>
+</head>
+<body>
+    <h1>Income and Expense Tracker</h1>
+    <div class="container">
+        <div class="input-group">
+            <input type="date" id="entryDate" placeholder="Select Date">
+            <input type="number" id="income" placeholder="Enter Income ($)">
+            <input type="number" id="expense" placeholder="Enter Expense ($)">
+            <input type="text" id="description" placeholder="Enter Description (e.g., Tips, Food)">
+        </div>
+        <button onclick="addEntry()">Add Entry</button>
+        <button onclick="signOutUser()">Sign Out</button>
+
+        <table id="trackerTable">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Income ($)</th>
+                    <th>Expense ($)</th>
+                    <th>Description</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyB0cqesm7KmerCsv00TWNjZT_-JPCjsV4E",
+            authDomain: "cash-flow-tracker-76efe.firebaseapp.com",
+            projectId: "cash-flow-tracker-76efe",
+            storageBucket: "cash-flow-tracker-76efe.appspot.com",
+            messagingSenderId: "232654883202",
+            appId: "1:232654883202:web:xxxxxx"
+        };
+
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        function signOutUser() {
+            auth.signOut().then(() => {
+                alert('User signed out successfully!');
+                window.location.href = 'index.html'; // Redirect to login
+            }).catch(err => console.error(err.message));
+        }
+
+        async function addEntry() {
+            const date = document.getElementById("entryDate").value;
+            const income = parseFloat(document.getElementById("income").value) || 0;
+            const expense = parseFloat(document.getElementById("expense").value) || 0;
+            const description = document.getElementById("description").value.trim();
+
+            if (!date || (!income && !expense) || !description) {
+                alert("Please fill in all fields correctly.");
+                return;
+            }
+
+            try {
+                const user = auth.currentUser;
+                await addDoc(collection(db, `users/${user.uid}/entries`), { date, income, expense, description });
+                alert("Entry added successfully!");
+                loadEntries();
+            } catch (err) {
+                console.error(err.message);
+            }
+        }
+
+        async function loadEntries() {
+            const tableBody = document.querySelector("#trackerTable tbody");
+            tableBody.innerHTML = "";
+            const user = auth.currentUser;
+
+            try {
+                const querySnapshot = await getDocs(collection(db, `users/${user.uid}/entries`));
+                querySnapshot.forEach(doc => {
+                    const entry = doc.data();
+                    const row = document.createElement("tr");
+
+                    const dateCell = document.createElement("td");
+                    dateCell.textContent = entry.date;
+                    row.appendChild(dateCell);
+
+                    const incomeCell = document.createElement("td");
+                    incomeCell.textContent = entry.income.toFixed(2);
+                    row.appendChild(incomeCell);
+
+                    const expenseCell = document.createElement("td");
+                    expenseCell.textContent = entry.expense.toFixed(2);
+                    row.appendChild(expenseCell);
+
+                    const descriptionCell = document.createElement("td");
+                    descriptionCell.textContent = entry.description;
+                    row.appendChild(descriptionCell);
+
+                    const deleteCell = document.createElement("td");
+                    const deleteButton = document.createElement("button");
+                    deleteButton.textContent = "Delete";
+                    deleteButton.onclick = () => deleteEntry(doc.id);
+                    deleteCell.appendChild(deleteButton);
+                    row.appendChild(deleteCell);
+
+                    tableBody.appendChild(row);
+                });
+            } catch (err) {
+                console.error(err.message);
+            }
+        }
+
+        async function deleteEntry(entryId) {
+            const user = auth.currentUser;
+            try {
+                await db.collection(`users/${user.uid}/entries`).doc(entryId).delete();
+                alert("Entry deleted successfully!");
+                loadEntries();
+            } catch (err) {
+                console.error(err.message);
+            }
+        }
+
+        // Load entries when the page loads
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                loadEntries();
+            } else {
+                window.location.href = 'index.html'; // Redirect to login
+            }
+        });
+    </script>
+</body>
+</html>
