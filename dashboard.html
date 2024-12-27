@@ -283,7 +283,7 @@
 
                     row.innerHTML = `
                         <td>${entry.date}</td>
-                        <td>${entry.amount.toFixed(2)}</td>
+                        <td>${entry.amount !== undefined ? entry.amount.toFixed(2) : '0.00'}</td>
                         <td>${entry.type}</td>
                         <td>${entry.description}</td>
                         <td>
@@ -401,9 +401,9 @@
 
                 querySnapshot.forEach(doc => {
                     const entry = doc.data();
-                    if (entry.type === "expense") {
+                    if (entry.type === "expense" && entry.amount !== undefined) {
                         totalSpent += entry.amount;
-                    } else {
+                    } else if (entry.type === "income" && entry.amount !== undefined) {
                         totalEarned += entry.amount;
                     }
                 });
