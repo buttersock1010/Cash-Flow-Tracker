@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Income and Expense Tracker - Login</title>
+    <title>Cash Flow Tracker - Login</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-auth-compat.js"></script>
     <style>
@@ -11,8 +11,8 @@
             font-family: 'Helvetica Neue', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #000;
-            color: #fff;
+            background-color: #f0f0f0;
+            color: #333;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -21,13 +21,13 @@
         }
         h1 {
             margin-bottom: 20px;
-            color: #fff;
+            color: #333;
         }
         .container {
-            background: rgba(255, 255, 255, 0.1);
+            background: #fff;
             border-radius: 15px;
             padding: 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             width: 90%;
             max-width: 400px;
             text-align: center;
@@ -35,10 +35,10 @@
         input {
             padding: 15px;
             width: 100%;
-            border: none;
+            border: 1px solid #ccc;
             border-radius: 10px;
-            background-color: rgba(255, 255, 255, 0.2);
-            color: #fff;
+            background-color: #f9f9f9;
+            color: #333;
             font-size: 1em;
             margin: 10px 0;
             transition: background 0.3s, transform 0.2s;
@@ -46,7 +46,7 @@
             box-sizing: border-box;
         }
         input:hover {
-            background-color: rgba(255, 255, 255, 0.3);
+            background-color: #e9e9e9;
             transform: scale(1.02);
         }
         button {
@@ -72,7 +72,7 @@
     </style>
 </head>
 <body>
-    <h1>Income Tracker</h1>
+    <h1>Cash Flow Tracker</h1>
     <div class="container">
         <input type="email" id="email" placeholder="Enter Email" required>
         <input type="password" id="password" placeholder="Enter Password" required>
