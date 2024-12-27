@@ -7,16 +7,69 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js"></script>
     <style>
-        /* Add your existing styles here */
+        body {
+            font-family: 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        h1 {
+            margin-bottom: 20px;
+            color: #fff;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            width: 300px;
+            text-align: center;
+        }
+        input {
+            padding: 15px;
+            width: 100%;
+            border: none;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            font-size: 1em;
+            margin: 10px 0;
+            transition: background 0.3s, transform 0.2s;
+            outline: none;
+        }
+        input:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: scale(1.02);
+        }
+        button {
+            padding: 15px;
+            background: linear-gradient(to right, #333, #666);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background 0.3s, transform 0.2s;
+            margin: 10px 0;
+            width: 100%;
+        }
+        button:hover {
+            background: linear-gradient(to right, #555, #888);
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body>
-    <h1>Income and Expense Tracker</h1>
+    <h1>Income Tracker</h1>
     <div class="container">
-        <div class="input-group">
-            <input type="email" id="email" placeholder="Enter Email">
-            <input type="password" id="password" placeholder="Enter Password">
-        </div>
+        <input type="email" id="email" placeholder="Enter Email" required>
+        <input type="password" id="password" placeholder="Enter Password" required>
         <button onclick="signUpUser()">Sign Up</button>
         <button onclick="signInUser()">Sign In</button>
     </div>
@@ -28,7 +81,7 @@
             projectId: "cash-flow-tracker-76efe",
             storageBucket: "cash-flow-tracker-76efe.appspot.com",
             messagingSenderId: "232654883202",
-            appId: "1:232654883202:web:xxxxxx"
+            appId: "1:232654883202:web:4de5b3537b7bbe7c39679b" // Replace with your actual app ID if you have it
         };
 
         const app = firebase.initializeApp(firebaseConfig);
@@ -43,7 +96,9 @@
                     alert('User signed up successfully!');
                     window.location.href = 'dashboard.html'; // Redirect to dashboard
                 })
-                .catch(err => console.error(err.message));
+                .catch(err => {
+                    alert(err.message);
+                });
         }
 
         function signInUser() {
@@ -55,7 +110,9 @@
                     alert('User signed in successfully!');
                     window.location.href = 'dashboard.html'; // Redirect to dashboard
                 })
-                .catch(err => console.error(err.message));
+                .catch(err => {
+                    alert(err.message);
+                });
         }
     </script>
 </body>
