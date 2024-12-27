@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Income and Expense Tracker - Dashboard</title>
+    <title>Cash Flow Tracker - Dashboard</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore-compat.js"></script>
@@ -13,8 +13,8 @@
             font-family: 'Helvetica Neue', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #000;
-            color: #fff;
+            background-color: #f0f0f0;
+            color: #333;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -23,13 +23,13 @@
         }
         h1 {
             margin-bottom: 20px;
-            color: #fff;
+            color: #333;
         }
         .container {
-            background: rgba(255, 255, 255, 0.1);
+            background: #fff;
             border-radius: 15px;
             padding: 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             width: 90%;
             max-width: 600px;
             text-align: center;
@@ -37,10 +37,10 @@
         input {
             padding: 15px;
             width: 100%;
-            border: none;
+            border: 1px solid #ccc;
             border-radius: 10px;
-            background-color: rgba(255, 255, 255, 0.2);
-            color: #fff;
+            background-color: #f9f9f9;
+            color: #333;
             font-size: 1em;
             margin: 10px 0;
             transition: background 0.3s, transform 0.2s;
@@ -48,7 +48,7 @@
             box-sizing: border-box;
         }
         input:hover {
-            background-color: rgba(255, 255, 255, 0.3);
+            background-color: #e9e9e9;
             transform: scale(1.02);
         }
         button {
@@ -77,16 +77,53 @@
             border: 1px solid #ddd;
             text-align: center;
         }
+        .summary {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+        }
+        .summary div {
+            background: #fff;
+            border-radius: 10px;
+            padding: 10px;
+            width: 30%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        .summary h3 {
+            margin: 0;
+            font-size: 1.2em;
+            color: #333;
+        }
+        .summary p {
+            margin: 5px 0 0;
+            font-size: 1em;
+            color: #555;
+        }
     </style>
 </head>
 <body>
-    <h1>Income Tracker</h1>
+    <h1>Cash Flow Tracker</h1>
+    <div class="summary">
+        <div>
+            <h3>Total Spent:</h3>
+            <p id="totalSpent">$0.00</p>
+        </div>
+        <div>
+            <h3>Total Earned:</h3>
+            <p id="totalEarned">$0.00</p>
+        </div>
+        <div>
+            <h3>Net Income:</h3>
+            <p id="netIncome">$0.00</p>
+        </div>
+    </div>
     <div class="container">
         <input type="date" id="entryDate" placeholder="Select Date">
         <input type="number" id="income" placeholder="Enter Income ($)">
         <input type="number" id="expense" placeholder="Enter Expense ($)">
         <input type="text" id="description" placeholder="Enter Description (e.g., Tips, Food)">
-        <button onclick="addEntry()">Add Entry</button>
+        <button id="addEntryBtn" onclick="addEntry()">Add Entry</button>
         <button onclick="signOutUser()">Sign Out</button>
         <button onclick="exportData()">Export Data</button>
         <table id="trackerTable">
@@ -96,6 +133,7 @@
                     <th>Income ($)</th>
                     <th>Expense ($)</th>
                     <th>Description</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -144,6 +182,7 @@
                 .then(() => {
                     alert("Entry added successfully!");
                     loadEntries();
+                    updateSummary();
                 })
                 .catch(err => {
                     console.error("Error adding entry: ", err);
@@ -161,7 +200,7 @@
                 return;
             }
 
-            db.collection(`users/${user.uid}/entries`).get().then(querySnapshot => {
+            db.collection(`users/${user.uid}/entries`).orderBy("date", "desc").get().then(querySnapshot => {
                 querySnapshot.forEach(doc => {
                     const entry = doc.data();
                     const row = document.createElement("tr");
@@ -171,12 +210,115 @@
                         <td>${entry.income.toFixed(2)}</td>
                         <td>${entry.expense.toFixed(2)}</td>
                         <td>${entry.description}</td>
+                        <td>
+                            <button onclick="editEntry('${doc.id}', '${entry.date}', ${entry.income}, ${entry.expense}, '${entry.description}')">Edit</button>
+                            <button onclick="deleteEntry('${doc.id}')">Delete</button>
+                        </td>
                     `;
                     tableBody.appendChild(row);
                 });
             }).catch(err => {
                 console.error("Error loading entries: ", err);
                 alert("Error loading entries: " + err.message);
+            });
+        }
+
+        function editEntry(id, date, income, expense, description) {
+            document.getElementById("entryDate").value = date;
+            document.getElementById("income").value = income;
+            document.getElementById("expense").value = expense;
+            document.getElementById("description").value = description;
+            document.getElementById("addEntryBtn").innerText = "Update Entry";
+            document.getElementById("addEntryBtn").onclick = function() {
+                updateEntry(id);
+            };
+        }
+
+        function updateEntry(id) {
+            const date = document.getElementById("entryDate").value;
+            const income = parseFloat(document.getElementById("income").value) || 0;
+            const expense = parseFloat(document.getElementById("expense").value) || 0;
+            const description = document.getElementById("description").value.trim();
+
+            if (!date || (!income && !expense) || !description) {
+                alert("Please fill in all fields correctly.");
+                return;
+            }
+
+            const user = auth.currentUser;
+            if (!user) {
+                alert("User not authenticated!");
+                return;
+            }
+
+            db.collection(`users/${user.uid}/entries`).doc(id).update({ date, income, expense, description })
+                .then(() => {
+                    alert("Entry updated successfully!");
+                    loadEntries();
+                    updateSummary();
+                    resetForm();
+                })
+                .catch(err => {
+                    console.error("Error updating entry: ", err);
+                    alert("Error updating entry: " + err.message);
+                });
+        }
+
+        function deleteEntry(id) {
+            const user = auth.currentUser;
+            if (!user) {
+                alert("User not authenticated!");
+                return;
+            }
+
+            db.collection(`users/${user.uid}/entries`).doc(id).delete()
+                .then(() => {
+                    alert("Entry deleted successfully!");
+                    loadEntries();
+                    updateSummary();
+                })
+                .catch(err => {
+                    console.error("Error deleting entry: ", err);
+                    alert("Error deleting entry: " + err.message);
+                });
+        }
+
+        function resetForm() {
+            document.getElementById("entryDate").value = "";
+            document.getElementById("income").value = "";
+            document.getElementById("expense").value = "";
+            document.getElementById("description").value = "";
+            document.getElementById("addEntryBtn").innerText = "Add Entry";
+            document.getElementById("addEntryBtn").onclick = addEntry;
+        }
+
+        function updateSummary() {
+            const user = auth.currentUser;
+            if (!user) {
+                alert("User not authenticated!");
+                return;
+            }
+
+            const today = new Date();
+            const thirtyDaysAgo = new Date(today.setDate(today.getDate() - 30)).toISOString().split('T')[0];
+
+            db.collection(`users/${user.uid}/entries`).where("date", ">=", thirtyDaysAgo).get().then(querySnapshot => {
+                let totalSpent = 0;
+                let totalEarned = 0;
+
+                querySnapshot.forEach(doc => {
+                    const entry = doc.data();
+                    totalSpent += entry.expense;
+                    totalEarned += entry.income;
+                });
+
+                const netIncome = totalEarned - totalSpent;
+                document.getElementById("totalSpent").textContent = `$${totalSpent.toFixed(2)}`;
+                document.getElementById("totalEarned").textContent = `$${totalEarned.toFixed(2)}`;
+                document.getElementById("netIncome").textContent = `$${netIncome.toFixed(2)}`;
+            }).catch(err => {
+                console.error("Error updating summary: ", err);
+                alert("Error updating summary: " + err.message);
             });
         }
 
@@ -196,7 +338,7 @@
                 const ws = XLSX.utils.json_to_sheet(entries);
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "Entries");
-                XLSX.writeFile(wb, "income_expense_tracker.xlsx");
+                XLSX.writeFile(wb, "cash_flow_tracker.xlsx");
             }).catch(err => {
                 console.error("Error exporting data: ", err);
                 alert("Error exporting data: " + err.message);
@@ -206,6 +348,7 @@
         auth.onAuthStateChanged(user => {
             if (user) {
                 loadEntries();
+                updateSummary();
             } else {
                 window.location.href = 'index.html'; // Redirect to login
             }
