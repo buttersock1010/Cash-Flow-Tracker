@@ -18,12 +18,43 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            height: 100vh;
+        }
+        .header {
+            position: sticky;
+            top: 0;
+            background: #fff;
+            padding: 20px;
+            border-bottom: 1px solid #ddd;
+            width: 100%;
+            text-align: center;
+            z-index: 1000;
         }
         h1 {
-            margin-bottom: 20px;
+            margin: 0;
             color: #333;
+        }
+        .summary {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin: 20px 0;
+        }
+        .summary div {
+            background: #fff;
+            border-radius: 10px;
+            padding: 10px;
+            width: 30%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        .summary h3 {
+            margin: 0;
+            font-size: 1.2em;
+            color: #333;
+        }
+        .summary p {
+            margin: 5px 0 0;
+            font-size: 1em;
+            color: #555;
         }
         .container {
             background: #fff;
@@ -33,6 +64,7 @@
             width: 90%;
             max-width: 600px;
             text-align: center;
+            margin-top: 20px;
         }
         input {
             padding: 15px;
@@ -77,45 +109,24 @@
             border: 1px solid #ddd;
             text-align: center;
         }
-        .summary {
-            margin-top: 20px;
-            display: flex;
-            justify-content: space-around;
-            width: 100%;
-        }
-        .summary div {
-            background: #fff;
-            border-radius: 10px;
-            padding: 10px;
-            width: 30%;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        }
-        .summary h3 {
-            margin: 0;
-            font-size: 1.2em;
-            color: #333;
-        }
-        .summary p {
-            margin: 5px 0 0;
-            font-size: 1em;
-            color: #555;
-        }
     </style>
 </head>
 <body>
-    <h1>Cash Flow Tracker</h1>
-    <div class="summary">
-        <div>
-            <h3>Total Spent:</h3>
-            <p id="totalSpent">$0.00</p>
-        </div>
-        <div>
-            <h3>Total Earned:</h3>
-            <p id="totalEarned">$0.00</p>
-        </div>
-        <div>
-            <h3>Net Income:</h3>
-            <p id="netIncome">$0.00</p>
+    <div class="header">
+        <h1>Cash Flow Tracker</h1>
+        <div class="summary">
+            <div>
+                <h3>Total Spent:</h3>
+                <p id="totalSpent">$0.00</p>
+            </div>
+            <div>
+                <h3>Total Earned:</h3>
+                <p id="totalEarned">$0.00</p>
+            </div>
+            <div>
+                <h3>Net Income:</h3>
+                <p id="netIncome">$0.00</p>
+            </div>
         </div>
     </div>
     <div class="container">
