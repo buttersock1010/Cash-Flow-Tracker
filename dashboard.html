@@ -29,7 +29,8 @@
             border-radius: 15px;
             padding: 20px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-            width: 400px;
+            width: 90%; /* Change this to a responsive width */
+            max-width: 600px; /* Maximum width */
             text-align: center;
         }
         input {
@@ -43,6 +44,7 @@
             margin: 10px 0;
             transition: background 0.3s, transform 0.2s;
             outline: none;
+            box-sizing: border-box; /* Prevents overflow */
         }
         input:hover {
             background-color: rgba(255, 255, 255, 0.3);
@@ -106,7 +108,7 @@
             projectId: "cash-flow-tracker-76efe",
             storageBucket: "cash-flow-tracker-76efe.appspot.com",
             messagingSenderId: "232654883202",
-            appId: "1:232654883202:web:4de5b3537b7bbe7c39679b" // Replace with your actual app ID if you have it
+            appId: "1:232654883202:web:4de5b3537b7bbe7c39679b" // Ensure this is correct
         };
 
         const app = firebase.initializeApp(firebaseConfig);
