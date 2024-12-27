@@ -28,8 +28,8 @@
             border-radius: 15px;
             padding: 20px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-            width: 90%; /* Change this to a responsive width */
-            max-width: 400px; /* Maximum width */
+            width: 90%;
+            max-width: 400px;
             text-align: center;
         }
         input {
@@ -43,7 +43,7 @@
             margin: 10px 0;
             transition: background 0.3s, transform 0.2s;
             outline: none;
-            box-sizing: border-box; /* Prevents overflow */
+            box-sizing: border-box;
         }
         input:hover {
             background-color: rgba(255, 255, 255, 0.3);
@@ -65,6 +65,10 @@
             background: linear-gradient(to right, #555, #888);
             transform: scale(1.05);
         }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -72,6 +76,7 @@
     <div class="container">
         <input type="email" id="email" placeholder="Enter Email" required>
         <input type="password" id="password" placeholder="Enter Password" required>
+        <div id="error-message" class="error"></div>
         <button onclick="signUpUser()">Sign Up</button>
         <button onclick="signInUser()">Sign In</button>
     </div>
@@ -92,6 +97,7 @@
         function signUpUser() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('error-message');
 
             auth.createUserWithEmailAndPassword(email, password)
                 .then(() => {
@@ -99,13 +105,14 @@
                     window.location.href = 'dashboard.html'; // Redirect to dashboard
                 })
                 .catch(err => {
-                    alert(err.message);
+                    errorMessage.textContent = err.message;
                 });
         }
 
         function signInUser() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('error-message');
 
             auth.signInWithEmailAndPassword(email, password)
                 .then(() => {
@@ -113,7 +120,7 @@
                     window.location.href = 'dashboard.html'; // Redirect to dashboard
                 })
                 .catch(err => {
-                    alert(err.message);
+                    errorMessage.textContent = err.message;
                 });
         }
     </script>
