@@ -20,18 +20,14 @@
             align-items: center;
         }
         .header {
-            position: sticky;
-            top: 0;
             background: #fff;
             padding: 20px;
             border-bottom: 1px solid #ddd;
             width: 100%;
             text-align: center;
             z-index: 1000;
-        }
-        h1 {
-            margin: 0;
-            color: #333;
+            display: flex;
+            justify-content: space-around;
         }
         .summary {
             display: flex;
@@ -65,6 +61,8 @@
             max-width: 600px;
             text-align: center;
             margin-top: 20px;
+            overflow-y: auto;
+            max-height: 60vh;
         }
         .modal-background {
             display: none;
@@ -129,6 +127,8 @@
             width: 100%;
             text-align: center;
             z-index: 1000;
+            display: flex;
+            justify-content: space-around;
         }
         .footer button {
             padding: 10px;
@@ -156,6 +156,9 @@
             border: 1px solid #ddd;
             text-align: center;
         }
+        th {
+            cursor: pointer;
+        }
         .close-btn {
             background: #fff;
             color: #333;
@@ -166,23 +169,32 @@
             top: 10px;
             right: 10px;
         }
+        .sort-arrow {
+            margin-left: 5px;
+            cursor: pointer;
+        }
+        .signature {
+            position: fixed;
+            bottom: 20px;
+            font-size: 0.8em;
+            color: #555;
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>Cash Flow Tracker</h1>
         <div class="summary">
             <div>
                 <h3>Total Spent:</h3>
                 <p id="totalSpent">$0.00</p>
             </div>
             <div>
-                <h3>Total Earned:</h3>
-                <p id="totalEarned">$0.00</p>
-            </div>
-            <div>
                 <h3>Net Income:</h3>
                 <p id="netIncome">$0.00</p>
+            </div>
+            <div>
+                <h3>Total Earned:</h3>
+                <p id="totalEarned">$0.00</p>
             </div>
         </div>
     </div>
@@ -190,10 +202,10 @@
         <table id="trackerTable">
             <thead>
                 <tr>
-                    <th>Date</th>
-                    <th>Amount ($)</th>
-                    <th>Type</th>
-                    <th>Description</th>
+                    <th onclick="sortTable('date')">Date <span class="sort-arrow">▼</span></th>
+                    <th onclick="sortTable('amount')">Amount ($) <span class="sort-arrow">▼</span></th>
+                    <th onclick="sortTable('type')">Type <span class="sort-arrow">▼</span></th>
+                    <th onclick="sortTable('description')">Description <span class="sort-arrow">▼</span></th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -210,14 +222,23 @@
                 <option value="expense">Expense</option>
             </select>
             <input type="text" id="entryDescription" placeholder="Enter Description (e.g., Tips, Food)">
-            <button id="addEntryBtn" onclick="addEntry()">Add Entry</button>
+            <button id="addEntryBtn" onclick="addEntry()">Add Transaction</button>
+        </div>
+    </div>
+    <div class="modal-background" id="logoutModalBackground">
+        <div class="modal">
+            <button class="close-btn" onclick="hideLogoutModal()">×</button>
+            <p id="logoutTimer">Auto sign out in: 10</p>
+            <button id="logoutYesBtn" onclick="confirmLogout()">Yes, Sign Me Out</button>
+            <button id="logoutNoBtn" onclick="hideLogoutModal()">No, Continue</button>
         </div>
     </div>
     <div class="footer">
-        <button onclick="showModal()">Add Entry</button>
-        <button onclick="signOutUser()">Sign Out</button>
+        <button onclick="showLogoutModal()">Sign Out</button>
+        <button id="addTransactionBtn" onclick="showModal()">Add Transaction</button>
         <button onclick="exportData()">Export Data</button>
     </div>
+    <div class="signature">buttersock.io v.1.01.0</div>
 
     <script>
         const firebaseConfig = {
@@ -232,6 +253,14 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
+
+        let entries = [];
+        let sortOrder = {
+            date: 1,
+            amount: 1,
+            type: 1,
+            description: 1
+        };
 
         function signOutUser() {
             auth.signOut().then(() => {
@@ -288,51 +317,51 @@
             }
 
             db.collection(`users/${user.uid}/entries`).orderBy("date", "desc").get().then(querySnapshot => {
-                let incomeEntries = [];
-                let expenseEntries = [];
-
+                entries = [];
                 querySnapshot.forEach(doc => {
                     const entry = doc.data();
-                    if (entry.type === "income") {
-                        incomeEntries.push({ id: doc.id, ...entry });
-                    } else {
-                        expenseEntries.push({ id: doc.id, ...entry });
-                    }
+                    entries.push({ id: doc.id, ...entry });
                 });
 
-                incomeEntries.forEach(entry => {
-                    const row = document.createElement("tr");
-                    row.innerHTML = `
-                        <td>${entry.date}</td>
-                        <td>${entry.amount !== undefined ? entry.amount.toFixed(2) : '0.00'}</td>
-                        <td>${entry.type}</td>
-                        <td>${entry.description}</td>
-                        <td>
-                            <button onclick="editEntry('${entry.id}', '${entry.date}', ${entry.amount}, '${entry.type}', '${entry.description}')">Edit</button>
-                            <button onclick="deleteEntry('${entry.id}')">Delete</button>
-                        </td>
-                    `;
-                    tableBody.appendChild(row);
-                });
-
-                expenseEntries.forEach(entry => {
-                    const row = document.createElement("tr");
-                    row.innerHTML = `
-                        <td>${entry.date}</td>
-                        <td>${entry.amount !== undefined ? entry.amount.toFixed(2) : '0.00'}</td>
-                        <td>${entry.type}</td>
-                        <td>${entry.description}</td>
-                        <td>
-                            <button onclick="editEntry('${entry.id}', '${entry.date}', ${entry.amount}, '${entry.type}', '${entry.description}')">Edit</button>
-                            <button onclick="deleteEntry('${entry.id}')">Delete</button>
-                        </td>
-                    `;
-                    tableBody.appendChild(row);
-                });
+                renderTable();
             }).catch(err => {
                 console.error("Error loading entries: ", err);
                 alert("Error loading entries: " + err.message);
             });
+        }
+
+        function renderTable() {
+            const tableBody = document.querySelector("#trackerTable tbody");
+            tableBody.innerHTML = "";
+
+            entries.forEach(entry => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${entry.date}</td>
+                    <td>${entry.amount !== undefined ? entry.amount.toFixed(2) : '0.00'}</td>
+                    <td>${entry.type}</td>
+                    <td>${entry.description}</td>
+                    <td>
+                        <button onclick="editEntry('${entry.id}', '${entry.date}', ${entry.amount}, '${entry.type}', '${entry.description}')">Edit</button>
+                        <button onclick="deleteEntry('${entry.id}')">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function sortTable(column) {
+            sortOrder[column] = sortOrder[column] * -1;
+            entries.sort((a, b) => {
+                if (a[column] > b[column]) {
+                    return 1 * sortOrder[column];
+                } else if (a[column] < b[column]) {
+                    return -1 * sortOrder[column];
+                } else {
+                    return 0;
+                }
+            });
+            renderTable();
         }
 
         function editEntry(id, date, amount, type, description) {
@@ -417,7 +446,7 @@
             document.getElementById("entryAmount").value = "";
             document.getElementById("entryType").value = "income";
             document.getElementById("entryDescription").value = "";
-            document.getElementById("addEntryBtn").innerText = "Add Entry";
+            document.getElementById("addEntryBtn").innerText = "Add Transaction";
             document.getElementById("addEntryBtn").onclick = addEntry;
         }
 
@@ -477,17 +506,34 @@
             });
         }
 
-        function handleScroll() {
-            const header = document.querySelector(".header");
-            const title = document.querySelector(".header h1");
-            if (window.scrollY > 0) {
-                title.style.display = "none";
-            } else {
-                title.style.display = "block";
-            }
+        function showLogoutModal() {
+            document.getElementById("logoutModalBackground").style.display = "flex";
+            document.getElementById("logoutYesBtn").style.display = "block";
+            document.getElementById("logoutNoBtn").style.display = "block";
+            document.getElementById("logoutTimer").textContent = "Auto sign out in: 10";
+            startLogoutTimer();
         }
 
-        window.addEventListener("scroll", handleScroll);
+        function hideLogoutModal() {
+            document.getElementById("logoutModalBackground").style.display = "none";
+            clearInterval(logoutTimer);
+        }
+
+        function startLogoutTimer() {
+            let timeLeft = 10;
+            logoutTimer = setInterval(() => {
+                timeLeft--;
+                document.getElementById("logoutTimer").textContent = `Auto sign out in: ${timeLeft}`;
+                if (timeLeft <= 0) {
+                    clearInterval(logoutTimer);
+                    signOutUser();
+                }
+            }, 1000);
+        }
+
+        function confirmLogout() {
+            signOutUser();
+        }
 
         auth.onAuthStateChanged(user => {
             if (user) {
